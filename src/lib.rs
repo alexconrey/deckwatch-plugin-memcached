@@ -15,13 +15,12 @@
 //! and sidecars, then injects them into all application deployments on the next
 //! reconcile cycle.
 
-use deckwatch_plugin_sdk::{
-    ConfigField, ConfigFieldType, PluginResource,
-    ResourceDeprovisionRequest, ResourceDeprovisionResult,
-    ResourceProvisionRequest, ResourceProvisionResult, SidecarSpec,
-};
 #[cfg(target_arch = "wasm32")]
 use deckwatch_plugin_sdk::PluginMetadata;
+use deckwatch_plugin_sdk::{
+    ConfigField, ConfigFieldType, PluginResource, ResourceDeprovisionRequest,
+    ResourceDeprovisionResult, ResourceProvisionRequest, ResourceProvisionResult, SidecarSpec,
+};
 #[cfg(target_arch = "wasm32")]
 use extism_pdk::*;
 
@@ -77,9 +76,10 @@ pub fn provision_inner(req: &ResourceProvisionRequest) -> ResourceProvisionResul
         .cloned()
         .unwrap_or_else(|| DEFAULT_IMAGE.to_string());
 
-    result
-        .state
-        .insert("MEMCACHED_URL".into(), format!("memcached://localhost:{DEFAULT_PORT}"));
+    result.state.insert(
+        "MEMCACHED_URL".into(),
+        format!("memcached://localhost:{DEFAULT_PORT}"),
+    );
 
     result
         .deployment_annotations
@@ -125,7 +125,8 @@ pub fn metadata() -> FnResult<Json<PluginMetadata>> {
         config_schema: vec![ConfigField {
             key: "MEMCACHED_IMAGE".into(),
             label: "Memcached Image".into(),
-            description: "Default Memcached container image (can be overridden per-resource).".into(),
+            description: "Default Memcached container image (can be overridden per-resource)."
+                .into(),
             field_type: ConfigFieldType::String,
             default: Some(DEFAULT_IMAGE.into()),
             required: false,
@@ -168,7 +169,10 @@ mod tests {
             application_name: "my-app".into(),
             namespace: "production".into(),
             resource_id: "cache".into(),
-            fields: fields.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect(),
+            fields: fields
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect(),
         }
     }
 
@@ -201,7 +205,11 @@ mod tests {
     #[test]
     fn provision_defaults_inject_correct_url_and_sidecar() {
         let result = provision_inner(&provision_req(&[]));
-        assert!(result.errors.is_empty(), "no errors expected: {:?}", result.errors);
+        assert!(
+            result.errors.is_empty(),
+            "no errors expected: {:?}",
+            result.errors
+        );
         assert_eq!(
             result.state.get("MEMCACHED_URL").map(String::as_str),
             Some("memcached://localhost:11211")
@@ -215,7 +223,10 @@ mod tests {
 
     #[test]
     fn provision_custom_image_is_used() {
-        let result = provision_inner(&provision_req(&[("MEMCACHED_IMAGE", "memcached:1.7-alpine")]));
+        let result = provision_inner(&provision_req(&[(
+            "MEMCACHED_IMAGE",
+            "memcached:1.7-alpine",
+        )]));
         assert_eq!(result.sidecars[0].image, "memcached:1.7-alpine");
     }
 
@@ -223,7 +234,10 @@ mod tests {
     fn provision_stamps_annotation() {
         let result = provision_inner(&provision_req(&[]));
         assert_eq!(
-            result.deployment_annotations.get("deckwatch.io/memcached").map(String::as_str),
+            result
+                .deployment_annotations
+                .get("deckwatch.io/memcached")
+                .map(String::as_str),
             Some("provisioned")
         );
     }
@@ -232,13 +246,19 @@ mod tests {
     fn provision_sidecar_has_resource_requests() {
         let result = provision_inner(&provision_req(&[]));
         assert!(result.sidecars[0].cpu.is_some(), "cpu request must be set");
-        assert!(result.sidecars[0].memory.is_some(), "memory request must be set");
+        assert!(
+            result.sidecars[0].memory.is_some(),
+            "memory request must be set"
+        );
     }
 
     #[test]
     fn deprovision_returns_non_empty_message() {
         let result = deprovision_inner(&deprovision_req());
         assert!(result.errors.is_empty());
-        assert!(!result.message.is_empty(), "deprovision must return a user-visible message");
+        assert!(
+            !result.message.is_empty(),
+            "deprovision must return a user-visible message"
+        );
     }
 }

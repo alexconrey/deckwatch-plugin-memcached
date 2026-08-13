@@ -1,0 +1,1 @@
+/private/tmp/deckwatch-plugins/deckwatch-plugin-memcached/target/wasm32-unknown-unknown/release/libdeckwatch_plugin_memcached.rlib: /private/tmp/deckwatch-plugins/deckwatch-plugin-memcached/src/lib.rs
